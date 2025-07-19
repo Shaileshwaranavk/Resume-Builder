@@ -125,14 +125,24 @@ class ResumeDocxDownloadView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        print("\n-----------------------------")
+        print("Download view HIT")
+        print("Request.user:", request.user)
+        print("Request.user ID:", getattr(request.user, "id", None))
+        print("User authenticated?", getattr(request.user, "is_authenticated", False))
+        print("-----------------------------")
+
         try:
             resume = request.user.basic_details
+            print("Basic_Details found:", resume)
         except Basic_Details.DoesNotExist:
+            print("❌ Basic_Details DOES NOT EXIST for user.")
             return Response({'error': 'Resume not found.'}, status=404)
 
         serializer = BasicDetailsSerializer(resume)
         docx_buffer = fill_template_with_data(serializer.data)
 
+        print("✅ DOCX generated. Returning file.")
         return FileResponse(
             docx_buffer,
             as_attachment=True,
