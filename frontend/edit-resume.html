@@ -5,12 +5,13 @@
   <title>Resume Tailor — Edit Resume</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-  <div class="bg-white shadow-md rounded-lg p-8 max-w-2xl w-full">
+<body class="bg-gray-100 flex justify-center min-h-screen p-8">
+  <div class="bg-white shadow-md rounded-lg p-8 max-w-5xl w-full">
     <h1 class="text-2xl font-bold mb-4">Edit Your Resume</h1>
     <div id="status" class="mb-4 text-sm text-gray-600"></div>
 
     <form id="resume-form" class="space-y-4">
+      <!-- Basic Details -->
       <div>
         <label class="block text-sm font-medium">First Name</label>
         <input name="first_name" class="w-full border border-gray-300 rounded p-2" required />
@@ -21,7 +22,7 @@
       </div>
       <div>
         <label class="block text-sm font-medium">Email</label>
-        <input name="email" class="w-full border border-gray-300 rounded p-2" required />
+        <input name="email" type="email" class="w-full border border-gray-300 rounded p-2" required />
       </div>
       <div>
         <label class="block text-sm font-medium">Phone</label>
@@ -32,9 +33,58 @@
         <input name="location" class="w-full border border-gray-300 rounded p-2" />
       </div>
       <div>
+        <label class="block text-sm font-medium">LinkedIn Profile</label>
+        <input name="linkedin_profile" class="w-full border border-gray-300 rounded p-2" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium">GitHub</label>
+        <input name="github" class="w-full border border-gray-300 rounded p-2" />
+      </div>
+      <div>
         <label class="block text-sm font-medium">Summary</label>
         <textarea name="summary" class="w-full border border-gray-300 rounded p-2" rows="4"></textarea>
       </div>
+      <div>
+        <label class="block text-sm font-medium">Skills (comma-separated)</label>
+        <input name="skills" class="w-full border border-gray-300 rounded p-2" />
+      </div>
+
+      <!-- Dynamic Sections -->
+      <!-- Experiences -->
+      <div>
+        <h2 class="text-lg font-bold">Experiences</h2>
+        <div id="experiences"></div>
+        <button type="button" id="add-experience" class="mt-2 bg-green-600 text-white px-4 py-1 rounded">Add Experience</button>
+      </div>
+
+      <!-- Educations -->
+      <div>
+        <h2 class="text-lg font-bold">Educations</h2>
+        <div id="educations"></div>
+        <button type="button" id="add-education" class="mt-2 bg-green-600 text-white px-4 py-1 rounded">Add Education</button>
+      </div>
+
+      <!-- Certifications -->
+      <div>
+        <h2 class="text-lg font-bold">Certifications</h2>
+        <div id="certifications"></div>
+        <button type="button" id="add-certification" class="mt-2 bg-green-600 text-white px-4 py-1 rounded">Add Certification</button>
+      </div>
+
+      <!-- Achievements -->
+      <div>
+        <h2 class="text-lg font-bold">Achievements</h2>
+        <div id="achievements"></div>
+        <button type="button" id="add-achievement" class="mt-2 bg-green-600 text-white px-4 py-1 rounded">Add Achievement</button>
+      </div>
+
+      <!-- Additional Sections -->
+      <div>
+        <h2 class="text-lg font-bold">Additional Sections</h2>
+        <div id="additional-sections"></div>
+        <button type="button" id="add-additional" class="mt-2 bg-green-600 text-white px-4 py-1 rounded">Add Section</button>
+      </div>
+
       <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
         Save Changes
       </button>
@@ -49,15 +99,68 @@
     const API_BASE = "https://resume-tailor-dbze.onrender.com";
     const TOKEN = localStorage.getItem("accessToken");
     const statusDiv = document.getElementById("status");
+    const form = document.getElementById("resume-form");
 
     if (!TOKEN) {
       alert("Not logged in. Please login first.");
       window.location.href = "index.html";
     }
 
-    const form = document.getElementById("resume-form");
+    const expContainer = document.getElementById("experiences");
+    const eduContainer = document.getElementById("educations");
+    const certContainer = document.getElementById("certifications");
+    const achContainer = document.getElementById("achievements");
+    const addContainer = document.getElementById("additional-sections");
 
-    // Load existing resume
+    function createBlock(container, fields, removeClass) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "border border-gray-300 p-4 rounded mb-4";
+      wrapper.innerHTML = fields.map(f =>
+        `<input placeholder="${f.placeholder}" name="${f.name}" class="w-full border p-2 mb-2" value="${f.value || ''}" />`
+      ).join('') + `<button type="button" class="${removeClass} bg-red-500 text-white px-2 py-1 rounded">Remove</button>`;
+
+      wrapper.querySelector(`.${removeClass}`).addEventListener("click", () => wrapper.remove());
+      container.appendChild(wrapper);
+    }
+
+    document.getElementById("add-experience").addEventListener("click", () =>
+      createBlock(expContainer, [
+        { name: "job_title", placeholder: "Job Title" },
+        { name: "company_name", placeholder: "Company Name" },
+        { name: "description", placeholder: "Description" }
+      ], "remove-exp")
+    );
+
+    document.getElementById("add-education").addEventListener("click", () =>
+      createBlock(eduContainer, [
+        { name: "degree", placeholder: "Degree" },
+        { name: "institution", placeholder: "Institution" },
+        { name: "description", placeholder: "Description" }
+      ], "remove-edu")
+    );
+
+    document.getElementById("add-certification").addEventListener("click", () =>
+      createBlock(certContainer, [
+        { name: "title", placeholder: "Title" },
+        { name: "issuing_organization", placeholder: "Organization" },
+        { name: "description", placeholder: "Description" }
+      ], "remove-cert")
+    );
+
+    document.getElementById("add-achievement").addEventListener("click", () =>
+      createBlock(achContainer, [
+        { name: "title", placeholder: "Title" },
+        { name: "description", placeholder: "Description" }
+      ], "remove-ach")
+    );
+
+    document.getElementById("add-additional").addEventListener("click", () =>
+      createBlock(addContainer, [
+        { name: "section_title", placeholder: "Section Title" },
+        { name: "content", placeholder: "Content" }
+      ], "remove-add")
+    );
+
     async function loadResume() {
       const res = await fetch(`${API_BASE}/resume-builder/resume/`, {
         headers: { "Authorization": `Bearer ${TOKEN}` }
@@ -79,7 +182,48 @@
       form.email.value = data.email || "";
       form.phone.value = data.phone || "";
       form.location.value = data.location || "";
+      form.linkedin_profile.value = data.linkedin_profile || "";
+      form.github.value = data.github || "";
       form.summary.value = data.summary || "";
+      form.skills.value = (data.skills || []).join(', ');
+
+      (data.experiences || []).forEach(e =>
+        createBlock(expContainer, [
+          { name: "job_title", placeholder: "Job Title", value: e.job_title },
+          { name: "company_name", placeholder: "Company Name", value: e.company_name },
+          { name: "description", placeholder: "Description", value: e.description }
+        ], "remove-exp")
+      );
+
+      (data.educations || []).forEach(e =>
+        createBlock(eduContainer, [
+          { name: "degree", placeholder: "Degree", value: e.degree },
+          { name: "institution", placeholder: "Institution", value: e.institution },
+          { name: "description", placeholder: "Description", value: e.description }
+        ], "remove-edu")
+      );
+
+      (data.certifications || []).forEach(e =>
+        createBlock(certContainer, [
+          { name: "title", placeholder: "Title", value: e.title },
+          { name: "issuing_organization", placeholder: "Organization", value: e.issuing_organization },
+          { name: "description", placeholder: "Description", value: e.description }
+        ], "remove-cert")
+      );
+
+      (data.achievements || []).forEach(e =>
+        createBlock(achContainer, [
+          { name: "title", placeholder: "Title", value: e.title },
+          { name: "description", placeholder: "Description", value: e.description }
+        ], "remove-ach")
+      );
+
+      (data.additional_sections || []).forEach(e =>
+        createBlock(addContainer, [
+          { name: "section_title", placeholder: "Section Title", value: e.section_title },
+          { name: "content", placeholder: "Content", value: e.content }
+        ], "remove-add")
+      );
 
       statusDiv.innerText = "Resume loaded!";
     }
@@ -88,8 +232,40 @@
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const formData = new FormData(form);
-      const data = Object.fromEntries(formData.entries());
+      const payload = {
+        first_name: form.first_name.value,
+        last_name: form.last_name.value,
+        email: form.email.value,
+        phone: form.phone.value,
+        location: form.location.value,
+        linkedin_profile: form.linkedin_profile.value,
+        github: form.github.value,
+        summary: form.summary.value,
+        skills: form.skills.value.split(',').map(s => s.trim()),
+        experiences: Array.from(expContainer.children).map(b => ({
+          job_title: b.querySelector('[name="job_title"]').value,
+          company_name: b.querySelector('[name="company_name"]').value,
+          description: b.querySelector('[name="description"]').value
+        })),
+        educations: Array.from(eduContainer.children).map(b => ({
+          degree: b.querySelector('[name="degree"]').value,
+          institution: b.querySelector('[name="institution"]').value,
+          description: b.querySelector('[name="description"]').value
+        })),
+        certifications: Array.from(certContainer.children).map(b => ({
+          title: b.querySelector('[name="title"]').value,
+          issuing_organization: b.querySelector('[name="issuing_organization"]').value,
+          description: b.querySelector('[name="description"]').value
+        })),
+        achievements: Array.from(achContainer.children).map(b => ({
+          title: b.querySelector('[name="title"]').value,
+          description: b.querySelector('[name="description"]').value
+        })),
+        additional_sections: Array.from(addContainer.children).map(b => ({
+          section_title: b.querySelector('[name="section_title"]').value,
+          content: b.querySelector('[name="content"]').value
+        }))
+      };
 
       const res = await fetch(`${API_BASE}/resume-builder/resume/`, {
         method: "PATCH",
@@ -97,7 +273,7 @@
           "Content-Type": "application/json",
           "Authorization": `Bearer ${TOKEN}`
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(payload)
       });
 
       if (res.ok) {
