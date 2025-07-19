@@ -1,3 +1,5 @@
+# ResumeApp/authentication.py
+
 import jwt
 from rest_framework.authentication import BaseAuthentication
 from rest_framework import exceptions
@@ -21,13 +23,13 @@ class JWTAuthentication(BaseAuthentication):
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         except jwt.ExpiredSignatureError:
-            raise exceptions.AuthenticationFailed('Token has expired')
+            raise exceptions.AuthenticationFailed('Token expired.')
         except jwt.InvalidTokenError:
-            raise exceptions.AuthenticationFailed('Invalid token')
+            raise exceptions.AuthenticationFailed('Invalid token.')
 
         try:
-            user = User_Details.objects.get(pk=payload['user_id'])
+            user = User_Details.objects.get(id=payload['user_id'])
         except User_Details.DoesNotExist:
-            raise exceptions.AuthenticationFailed('User not found')
+            raise exceptions.AuthenticationFailed('User not found.')
 
         return (user, None)
