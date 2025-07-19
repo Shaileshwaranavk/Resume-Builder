@@ -10,9 +10,6 @@ class User_Details(models.Model):
     address = models.TextField(blank=True, null=True)
     password = models.CharField(max_length=128)  # Store hashed password
 
-    def __str__(self):
-        return f"{self.first_name} {self.last_name} - {self.email}"
-
     def set_password(self, raw_password):
         self.password = make_password(raw_password)
 
@@ -22,7 +19,9 @@ class User_Details(models.Model):
     @property
     def is_authenticated(self):
         return True
-
+        
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - {self.email}"
 
 class Basic_Details(models.Model):
     user = models.OneToOneField('User_Details', on_delete=models.CASCADE, related_name='basic_details', null=True, blank=True)
