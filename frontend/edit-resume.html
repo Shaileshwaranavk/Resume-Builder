@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Resume Tailor — Edit Resume</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+  <div class="bg-white shadow-md rounded-lg p-8 max-w-2xl w-full">
+    <h1 class="text-2xl font-bold mb-4">Edit Your Resume</h1>
+    <div id="status" class="mb-4 text-sm text-gray-600"></div>
+
+    <form id="resume-form" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium">First Name</label>
+        <input name="first_name" class="w-full border border-gray-300 rounded p-2" required />
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Last Name</label>
+        <input name="last_name" class="w-full border border-gray-300 rounded p-2" required />
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Email</label>
+        <input name="email" class="w-full border border-gray-300 rounded p-2" required />
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Phone</label>
+        <input name="phone" class="w-full border border-gray-300 rounded p-2" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Location</label>
+        <input name="location" class="w-full border border-gray-300 rounded p-2" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Summary</label>
+        <textarea name="summary" class="w-full border border-gray-300 rounded p-2" rows="4"></textarea>
+      </div>
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Save Changes
+      </button>
+    </form>
+
+    <button id="back-btn" class="mt-4 bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">
+      Back to Dashboard
+    </button>
+  </div>
+
+  <script>
+    const API_BASE = "https://resume-tailor-dbze.onrender.com";
+    const TOKEN = localStorage.getItem("accessToken");
+    const statusDiv = document.getElementById("status");
+
+    if (!TOKEN) {
+      alert("Not logged in. Please login first.");
+      window.location.href = "index.html";
+    }
+
+    const form = document.getElementById("resume-form");
+
+    // Load existing resume
+    async function loadResume() {
+      const res = await fetch(`${API_BASE}/resume-builder/resume/`, {
+        headers: { "Authorization": `Bearer ${TOKEN}` }
+      });
+
+      if (res.status === 404) {
+        statusDiv.innerText = "No resume found. Fill out the form to create one!";
+        return;
+      }
+
+      if (!res.ok) {
+        statusDiv.innerText = "Failed to load resume.";
+        return;
+      }
+
+      const data = await res.json();
+      form.first_name.value = data.first_name || "";
+      form.last_name.value = data.last_name || "";
+      form.email.value = data.email || "";
+      form.phone.value = data.phone || "";
+      form.location.value = data.location || "";
+      form.summary.value = data.summary || "";
+
+      statusDiv.innerText = "Resume loaded!";
+    }
+
+    loadResume();
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      const res = await fetch(`${API_BASE}/resume-builder/resume/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${TOKEN}`
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        statusDiv.innerText = "✅ Resume updated!";
+        statusDiv.className = "mb-4 text-green-600 text-sm";
+      } else {
+        statusDiv.innerText = "❌ Update failed.";
+        statusDiv.className = "mb-4 text-red-600 text-sm";
+      }
+    });
+
+    document.getElementById("back-btn").addEventListener("click", () => {
+      window.location.href = "dashboard.html";
+    });
+  </script>
+</body>
+</html>

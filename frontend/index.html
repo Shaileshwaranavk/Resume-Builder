@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Resume Tailor — Login & Register</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+  <div class="bg-white shadow-md rounded-lg p-8 max-w-4xl w-full flex flex-col md:flex-row gap-8">
+    <!-- Register -->
+    <div class="flex-1">
+      <h2 class="text-2xl font-bold mb-4">Register</h2>
+      <form id="register-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium">First Name</label>
+          <input name="first_name" class="w-full border border-gray-300 rounded p-2" required />
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Last Name</label>
+          <input name="last_name" class="w-full border border-gray-300 rounded p-2" required />
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Email</label>
+          <input type="email" name="email" class="w-full border border-gray-300 rounded p-2" required />
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Password</label>
+          <input type="password" name="password" class="w-full border border-gray-300 rounded p-2" required />
+        </div>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Register</button>
+        <p id="register-message" class="text-sm mt-2"></p>
+      </form>
+    </div>
+
+    <div class="w-px bg-gray-300 hidden md:block"></div>
+
+    <!-- Login -->
+    <div class="flex-1">
+      <h2 class="text-2xl font-bold mb-4">Login</h2>
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium">Email</label>
+          <input type="email" name="email" class="w-full border border-gray-300 rounded p-2" required />
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Password</label>
+          <input type="password" name="password" class="w-full border border-gray-300 rounded p-2" required />
+        </div>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Login</button>
+        <p id="login-message" class="text-sm mt-2"></p>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "https://resume-tailor-dbze.onrender.com";
+
+    const registerForm = document.getElementById("register-form");
+    const registerMessage = document.getElementById("register-message");
+
+    const loginForm = document.getElementById("login-form");
+    const loginMessage = document.getElementById("login-message");
+
+    registerForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(registerForm);
+      const data = Object.fromEntries(formData.entries());
+
+      const res = await fetch(`${API_BASE}/resume-builder/register/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      const json = await res.json();
+      if (res.ok) {
+        registerMessage.innerText = "✅ Registered successfully! Please login.";
+        registerMessage.className = "text-green-600";
+        registerForm.reset();
+      } else {
+        registerMessage.innerText = json.error || "❌ Registration failed.";
+        registerMessage.className = "text-red-600";
+      }
+    });
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(loginForm);
+      const data = Object.fromEntries(formData.entries());
+
+      const res = await fetch(`${API_BASE}/resume-builder/login/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      const json = await res.json();
+      if (res.ok) {
+        localStorage.setItem("accessToken", json.access);
+        localStorage.setItem("username", json.first_name || "User");
+        loginMessage.innerText = "✅ Login successful! Redirecting...";
+        loginMessage.className = "text-green-600";
+        setTimeout(() => {
+          window.location.href = "dashboard.html"; // ✅ RELATIVE for local & deploy!
+        }, 1000);
+      } else {
+        loginMessage.innerText = json.error || "❌ Login failed.";
+        loginMessage.className = "text-red-600";
+      }
+    });
+  </script>
+</body>
+</html>

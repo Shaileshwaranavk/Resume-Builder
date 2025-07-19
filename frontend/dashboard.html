@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Resume Tailor — Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+  <div class="bg-white shadow-md rounded-lg p-8 max-w-md w-full text-center">
+    <h1 class="text-2xl font-bold mb-4">Welcome to Resume Tailor</h1>
+    <h2 id="greeting" class="text-xl mb-6"></h2>
+
+    <div class="flex flex-col gap-4">
+      <button id="manage-btn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Manage Resume
+      </button>
+      <button id="download-btn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        Download Resume (DOCX)
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "https://resume-tailor-dbze.onrender.com";
+    const token = localStorage.getItem("accessToken");
+    const username = localStorage.getItem("username");
+
+    if (!token) {
+      alert("You are not logged in. Please login first.");
+      window.location.href = "index.html";
+    }
+
+    document.getElementById("greeting").innerText = `Hi, ${username}!`;
+
+    document.getElementById("manage-btn").addEventListener("click", () => {
+      window.location.href = "edit-resume.html";
+    });
+
+    document.getElementById("download-btn").addEventListener("click", async () => {
+      const res = await fetch(`${API_BASE}/resume-builder/resume/download/`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!res.ok) {
+        alert("Download failed. Make sure your resume exists.");
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `resume.docx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>
