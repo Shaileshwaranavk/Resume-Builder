@@ -5,10 +5,9 @@
   <title>Resume Tailor — Login & Register</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+  <h1 class="text-4xl font-bold mb-8 text-gray-800 text-center">Resume Tailor</h1>
 
-  <h1 class="text-4xl font-bold mb-8 text-gray-800">Resume Tailor</h1>
-  
   <div class="bg-white shadow-md rounded-lg p-8 max-w-4xl w-full flex flex-col md:flex-row gap-8">
     <!-- Register -->
     <div class="flex-1">
@@ -104,7 +103,7 @@
         loginMessage.innerText = "✅ Login successful! Redirecting...";
         loginMessage.className = "text-green-600";
         setTimeout(() => {
-          window.location.href = "dashboard.html"; // ✅ RELATIVE for local & deploy!
+          window.location.href = "dashboard.html";
         }, 1000);
       } else {
         loginMessage.innerText = json.error || "❌ Login failed.";
