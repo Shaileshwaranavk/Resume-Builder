@@ -49,7 +49,6 @@
         <input name="skills" class="w-full border border-gray-300 rounded p-2" />
       </div>
 
-      <!-- Dynamic Sections -->
       <!-- Experiences -->
       <div>
         <h2 class="text-lg font-bold">Experiences</h2>
@@ -62,6 +61,13 @@
         <h2 class="text-lg font-bold">Educations</h2>
         <div id="educations"></div>
         <button type="button" id="add-education" class="mt-2 bg-green-600 text-white px-4 py-1 rounded">Add Education</button>
+      </div>
+
+      <!-- Projects -->
+      <div>
+        <h2 class="text-lg font-bold">Projects</h2>
+        <div id="projects"></div>
+        <button type="button" id="add-project" class="mt-2 bg-green-600 text-white px-4 py-1 rounded">Add Project</button>
       </div>
 
       <!-- Certifications -->
@@ -108,6 +114,7 @@
 
     const expContainer = document.getElementById("experiences");
     const eduContainer = document.getElementById("educations");
+    const projContainer = document.getElementById("projects");
     const certContainer = document.getElementById("certifications");
     const achContainer = document.getElementById("achievements");
     const addContainer = document.getElementById("additional-sections");
@@ -127,6 +134,10 @@
       createBlock(expContainer, [
         { name: "job_title", placeholder: "Job Title" },
         { name: "company_name", placeholder: "Company Name" },
+        { name: "location", placeholder: "Location" },
+        { name: "start_date", placeholder: "Start Date" },
+        { name: "end_date", placeholder: "End Date" },
+        { name: "currently_working", placeholder: "Currently Working (true/false)" },
         { name: "description", placeholder: "Description" }
       ], "remove-exp")
     );
@@ -135,15 +146,33 @@
       createBlock(eduContainer, [
         { name: "degree", placeholder: "Degree" },
         { name: "institution", placeholder: "Institution" },
+        { name: "gpa", placeholder: "GPA" },
+        { name: "location", placeholder: "Location" },
+        { name: "start_date", placeholder: "Start Date" },
+        { name: "end_date", placeholder: "End Date" },
         { name: "description", placeholder: "Description" }
       ], "remove-edu")
+    );
+
+    document.getElementById("add-project").addEventListener("click", () =>
+      createBlock(projContainer, [
+        { name: "title", placeholder: "Project Title" },
+        { name: "description", placeholder: "Description" },
+        { name: "technologies_used", placeholder: "Technologies (comma-separated)" },
+        { name: "start_date", placeholder: "Start Date" },
+        { name: "end_date", placeholder: "End Date" },
+        { name: "ongoing", placeholder: "Ongoing (true/false)" },
+        { name: "link", placeholder: "Link (optional)" }
+      ], "remove-proj")
     );
 
     document.getElementById("add-certification").addEventListener("click", () =>
       createBlock(certContainer, [
         { name: "title", placeholder: "Title" },
         { name: "issuing_organization", placeholder: "Organization" },
-        { name: "description", placeholder: "Description" }
+        { name: "description", placeholder: "Description" },
+        { name: "credential_id", placeholder: "Credential ID" },
+        { name: "credential_url", placeholder: "Credential URL" }
       ], "remove-cert")
     );
 
@@ -166,11 +195,6 @@
         headers: { "Authorization": `Bearer ${TOKEN}` }
       });
 
-      if (res.status === 404) {
-        statusDiv.innerText = "No resume found. Fill out the form to create one!";
-        return;
-      }
-
       if (!res.ok) {
         statusDiv.innerText = "Failed to load resume.";
         return;
@@ -189,43 +213,63 @@
 
       (data.experiences || []).forEach(e =>
         createBlock(expContainer, [
-          { name: "job_title", placeholder: "Job Title", value: e.job_title },
-          { name: "company_name", placeholder: "Company Name", value: e.company_name },
-          { name: "description", placeholder: "Description", value: e.description }
+          { name: "job_title", value: e.job_title, placeholder: "Job Title" },
+          { name: "company_name", value: e.company_name, placeholder: "Company Name" },
+          { name: "location", value: e.location, placeholder: "Location" },
+          { name: "start_date", value: e.start_date, placeholder: "Start Date" },
+          { name: "end_date", value: e.end_date, placeholder: "End Date" },
+          { name: "currently_working", value: e.currently_working, placeholder: "Currently Working (true/false)" },
+          { name: "description", value: e.description, placeholder: "Description" }
         ], "remove-exp")
       );
 
       (data.educations || []).forEach(e =>
         createBlock(eduContainer, [
-          { name: "degree", placeholder: "Degree", value: e.degree },
-          { name: "institution", placeholder: "Institution", value: e.institution },
-          { name: "description", placeholder: "Description", value: e.description }
+          { name: "degree", value: e.degree, placeholder: "Degree" },
+          { name: "institution", value: e.institution, placeholder: "Institution" },
+          { name: "gpa", value: e.gpa, placeholder: "GPA" },
+          { name: "location", value: e.location, placeholder: "Location" },
+          { name: "start_date", value: e.start_date, placeholder: "Start Date" },
+          { name: "end_date", value: e.end_date, placeholder: "End Date" },
+          { name: "description", value: e.description, placeholder: "Description" }
         ], "remove-edu")
+      );
+
+      (data.projects || []).forEach(e =>
+        createBlock(projContainer, [
+          { name: "title", value: e.title, placeholder: "Project Title" },
+          { name: "description", value: e.description, placeholder: "Description" },
+          { name: "technologies_used", value: e.technologies_used.join(', '), placeholder: "Technologies" },
+          { name: "start_date", value: e.start_date, placeholder: "Start Date" },
+          { name: "end_date", value: e.end_date, placeholder: "End Date" },
+          { name: "ongoing", value: e.ongoing, placeholder: "Ongoing" },
+          { name: "link", value: e.link, placeholder: "Link" }
+        ], "remove-proj")
       );
 
       (data.certifications || []).forEach(e =>
         createBlock(certContainer, [
-          { name: "title", placeholder: "Title", value: e.title },
-          { name: "issuing_organization", placeholder: "Organization", value: e.issuing_organization },
-          { name: "description", placeholder: "Description", value: e.description }
+          { name: "title", value: e.title, placeholder: "Title" },
+          { name: "issuing_organization", value: e.issuing_organization, placeholder: "Organization" },
+          { name: "description", value: e.description, placeholder: "Description" },
+          { name: "credential_id", value: e.credential_id, placeholder: "Credential ID" },
+          { name: "credential_url", value: e.credential_url, placeholder: "Credential URL" }
         ], "remove-cert")
       );
 
       (data.achievements || []).forEach(e =>
         createBlock(achContainer, [
-          { name: "title", placeholder: "Title", value: e.title },
-          { name: "description", placeholder: "Description", value: e.description }
+          { name: "title", value: e.title, placeholder: "Title" },
+          { name: "description", value: e.description, placeholder: "Description" }
         ], "remove-ach")
       );
 
       (data.additional_sections || []).forEach(e =>
         createBlock(addContainer, [
-          { name: "section_title", placeholder: "Section Title", value: e.section_title },
-          { name: "content", placeholder: "Content", value: e.content }
+          { name: "section_title", value: e.section_title, placeholder: "Section Title" },
+          { name: "content", value: e.content, placeholder: "Content" }
         ], "remove-add")
       );
-
-      statusDiv.innerText = "Resume loaded!";
     }
 
     loadResume();
@@ -245,17 +289,36 @@
         experiences: Array.from(expContainer.children).map(b => ({
           job_title: b.querySelector('[name="job_title"]').value,
           company_name: b.querySelector('[name="company_name"]').value,
+          location: b.querySelector('[name="location"]').value,
+          start_date: b.querySelector('[name="start_date"]').value,
+          end_date: b.querySelector('[name="end_date"]').value,
+          currently_working: b.querySelector('[name="currently_working"]').value === 'true',
           description: b.querySelector('[name="description"]').value
         })),
         educations: Array.from(eduContainer.children).map(b => ({
           degree: b.querySelector('[name="degree"]').value,
           institution: b.querySelector('[name="institution"]').value,
+          gpa: b.querySelector('[name="gpa"]').value,
+          location: b.querySelector('[name="location"]').value,
+          start_date: b.querySelector('[name="start_date"]').value,
+          end_date: b.querySelector('[name="end_date"]').value,
           description: b.querySelector('[name="description"]').value
+        })),
+        projects: Array.from(projContainer.children).map(b => ({
+          title: b.querySelector('[name="title"]').value,
+          description: b.querySelector('[name="description"]').value,
+          technologies_used: b.querySelector('[name="technologies_used"]').value.split(',').map(s => s.trim()),
+          start_date: b.querySelector('[name="start_date"]').value,
+          end_date: b.querySelector('[name="end_date"]').value,
+          ongoing: b.querySelector('[name="ongoing"]').value === 'true',
+          link: b.querySelector('[name="link"]').value
         })),
         certifications: Array.from(certContainer.children).map(b => ({
           title: b.querySelector('[name="title"]').value,
           issuing_organization: b.querySelector('[name="issuing_organization"]').value,
-          description: b.querySelector('[name="description"]').value
+          description: b.querySelector('[name="description"]').value,
+          credential_id: b.querySelector('[name="credential_id"]').value,
+          credential_url: b.querySelector('[name="credential_url"]').value
         })),
         achievements: Array.from(achContainer.children).map(b => ({
           title: b.querySelector('[name="title"]').value,
