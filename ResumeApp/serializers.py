@@ -23,8 +23,6 @@ class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField()
 
-
-
 class ExperienceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Experience
@@ -76,7 +74,10 @@ class BasicDetailsSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         user = request.user
 
-        # Pop nested data
+        # ✅ FIX: Remove 'user' if frontend mistakenly sends it
+        validated_data.pop('user', None)  # <- THIS LINE IS THE FIX!
+
+        # Extract nested data
         experiences_data = validated_data.pop('experiences', [])
         educations_data = validated_data.pop('educations', [])
         projects_data = validated_data.pop('projects', [])
@@ -84,10 +85,10 @@ class BasicDetailsSerializer(serializers.ModelSerializer):
         achievements_data = validated_data.pop('achievements', [])
         additional_sections_data = validated_data.pop('additional_sections', [])
 
-        # Create basic_details with user
+        # Create main Basic_Details with the authenticated user
         basic_details = Basic_Details.objects.create(user=user, **validated_data)
 
-        # Create nested objects
+        # Create nested related objects
         for item in experiences_data:
             Experience.objects.create(basic_details=basic_details, **item)
         for item in educations_data:
@@ -111,6 +112,6 @@ class BasicDetailsSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
 
-        # Handle nested fields if needed (optional: can add nested update logic here)
+        # Optional: Add nested update logic if needed
 
         return instance
