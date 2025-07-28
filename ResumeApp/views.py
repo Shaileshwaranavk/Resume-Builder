@@ -1,19 +1,17 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import User_Details
-from .serializers import RegisterSerializer, LoginSerializer
-from django.contrib.auth.hashers import check_password
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
-
-from rest_framework.permissions import IsAuthenticated
 from django.http import FileResponse
-from .models import Basic_Details
-from .serializers import BasicDetailsSerializer
+from django.conf import settings
+
+from .models import User_Details, Basic_Details
+from .serializers import RegisterSerializer, LoginSerializer, BasicDetailsSerializer
 from ResumeApp.resume_generator import fill_template_with_data
 
-from rest_framework.permissions import AllowAny
+import jwt
+from datetime import datetime, timedelta
 
 
 class RegisterView(APIView):
@@ -43,9 +41,6 @@ class RegisterView(APIView):
 
         return Response({'message': 'User registered successfully.'}, status=status.HTTP_201_CREATED)
 
-import jwt
-from datetime import datetime, timedelta
-from django.conf import settings
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
@@ -90,36 +85,40 @@ class ResumeView(APIView):
 
     def post(self, request):
         try:
-            if request.user.basic_details:
-                return Response({'error': 'Resume already exists. Use PATCH to update.'}, status=400)
+            if hasattr(request.user, 'basic_details'):
+                return Response({'error': 'Resume already exists. Use PATCH to update.'}, status=status.HTTP_400_BAD_REQUEST)
         except Basic_Details.DoesNotExist:
             pass
 
         serializer = BasicDetailsSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            instance = serializer.save()
+            instance = serializer.save(user=request.user)
             return Response({"id": instance.id}, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
         try:
             resume = request.user.basic_details
-            serializer = BasicDetailsSerializer(resume)
-            return Response(serializer.data)
         except Basic_Details.DoesNotExist:
-            return Response({'error': 'Resume not found.'}, status=404)
+            return Response({'error': 'Resume not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = BasicDetailsSerializer(resume)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request):
         try:
             resume = request.user.basic_details
         except Basic_Details.DoesNotExist:
-            return Response({'error': 'Resume not found. Use POST to create.'}, status=404)
+            return Response({'error': 'Resume not found. Use POST to create.'}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = BasicDetailsSerializer(resume, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ResumeDocxDownloadView(APIView):
     permission_classes = [IsAuthenticated]
@@ -137,7 +136,7 @@ class ResumeDocxDownloadView(APIView):
             print("Basic_Details found:", resume)
         except Basic_Details.DoesNotExist:
             print("❌ Basic_Details DOES NOT EXIST for user.")
-            return Response({'error': 'Resume not found.'}, status=404)
+            return Response({'error': 'Resume not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = BasicDetailsSerializer(resume)
         docx_buffer = fill_template_with_data(serializer.data)
